@@ -3,34 +3,37 @@ name: Build and Run Docker Container
 on:
   push:
     branches:
-      - main  # or replace with your desired branch
+      - main  # Change this if your default branch is different
+  workflow_dispatch:  # Allows manual trigger via GitHub UI
 
 jobs:
   build-and-run:
+    name: Build and Run Docker Image
     runs-on: ubuntu-latest
-    steps:
 
-    - name: Checkout repository
+    steps:
+    - name: Checkout Repository
       uses: actions/checkout@v2
 
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
 
-    - name: Build Docker image
+    - name: Build Docker Image
       run: |
         docker build -t local-app:latest .
 
-    - name: Run Docker container
+    - name: Run Docker Container
       run: |
-        docker run -d -p 5001:5001 --name running-app local-app:latest
+        docker run -d -p 5001:5001 --name app-container local-app:latest
 
-    - name: Check container logs
+    - name: Wait for App to Start and Show Logs
       run: |
         sleep 5
-        docker logs running-app
+        docker ps
+        docker logs app-container
 
-    - name: Cleanup
+    - name: Cleanup Docker Container
       if: always()
       run: |
-        docker stop running-app
-        docker rm running-app
+        docker stop app-container || true
+        docker rm app-container || true
